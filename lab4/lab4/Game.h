@@ -23,6 +23,7 @@ private:
 
 	void setupFontAndText();
 	void setupSprite();
+	void setupObjects();
 
 	sf::RenderWindow m_window; // main SFML window
 	sf::Font m_ArialBlackfont; // font used by message
@@ -30,6 +31,11 @@ private:
 	sf::Texture m_logoTexture; // texture used for sfml logo
 	sf::Sprite m_logoSprite; // sprite used for sfml logo
 	bool m_exitGame; // control exiting game
+
+	sf::RectangleShape m_ground;
+	sf::RectangleShape m_player;
+
+	sf::Vector2f playerBeam{ 0.0f, 0.0f }; // Position of Player's laser.
 
 };
 

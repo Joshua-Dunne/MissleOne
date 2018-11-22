@@ -24,7 +24,7 @@
 
 
 /// <summary>
-/// main enrtry point
+/// main entry point
 /// </summary>
 /// <returns>zero</returns>
 int main()
