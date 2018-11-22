@@ -31,12 +31,20 @@ private:
 	sf::Texture m_logoTexture; // texture used for sfml logo
 	sf::Sprite m_logoSprite; // sprite used for sfml logo
 	bool m_exitGame; // control exiting game
+	bool m_drawLines = false;
+	bool m_hasClicked = false;
 
 	sf::RectangleShape m_ground;
 	sf::RectangleShape m_player;
+	sf::RectangleShape m_powerBar;
 
-	sf::Vector2f playerBeam{ 0.0f, 0.0f }; // Position of Player's laser.
+	sf::Vertex m_beamStart;
+	sf::Vertex m_beamEnd;
+	sf::VertexArray	m_beamLine{ sf::Lines };
 
+	sf::Vertex m_enemyStart;
+	sf::Vertex m_enemyEnd;
+	sf::VertexArray	m_enemyLine{ sf::Lines };
 };
 
 #endif // !GAME

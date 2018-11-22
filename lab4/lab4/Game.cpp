@@ -73,6 +73,25 @@ void Game::processEvents()
 				m_exitGame = true;
 			}
 		}
+
+		sf::Vector2f mouseClickStart{}; // Holds the location of the first click
+
+		if (sf::Mouse::Left == event.mouseButton.button) // If the left mouse button is pressed..
+		{
+			if (m_hasClicked == false) {
+				m_beamEnd.position = (sf::Vector2f(event.mouseButton.x, event.mouseButton.y));
+				m_beamLine.append(m_beamEnd);
+				m_drawLines = true;
+				m_hasClicked = true;
+			}
+			else
+			{
+				m_beamLine.clear();
+				m_beamLine.append(m_beamStart);
+				m_hasClicked = false;
+			}
+		}
+
 	}
 }
 
@@ -96,8 +115,11 @@ void Game::render()
 	m_window.clear(sf::Color::Black);
 	//m_window.draw(m_welcomeMessage);
 	//m_window.draw(m_logoSprite);
-	m_window.draw(m_player);
 	m_window.draw(m_ground);
+	m_window.draw(m_player);
+	m_window.draw(m_beamLine);
+	m_window.draw(m_enemyLine);
+	m_window.draw(m_powerBar);
 	m_window.display();
 }
 
@@ -141,11 +163,33 @@ void Game::setupSprite()
 
 void Game::setupObjects()
 {
+	// Sets up Ground
 	m_ground.setSize(sf::Vector2f(800.0f, 100.0f));
 	m_ground.setPosition(sf::Vector2f(0.0f, 500.0f));
 	m_ground.setFillColor(sf::Color::Green);
 
+	// Sets up the "Player"
 	m_player.setSize(sf::Vector2f(50.0f, 50.0f));
 	m_player.setPosition(sf::Vector2f((m_window.getSize().x / 2) - (m_player.getSize().x / 2), 450.0f));
 	m_player.setFillColor(sf::Color::Red);
+
+	// Sets up the Power Bar
+	m_powerBar.setSize(sf::Vector2f(200.0f, 50.0f));
+	m_powerBar.setPosition(sf::Vector2f(50.0f, 525.0f));
+	m_powerBar.setFillColor(sf::Color::Red);
+
+	
+	m_beamStart.position = (sf::Vector2f(400.0f, 500.0f)); // Puts the beam's initial position to where the player is.
+	m_beamStart.color = sf::Color::Yellow; // Sets the color of that point to yellow.
+	m_beamEnd.color = sf::Color::Yellow; // Sets the color of that point to yellow, making the entire line Yellow.
+	m_beamLine.append(m_beamStart); // Initially appends the beamStart
+
+	// Sets up the enemy's beam
+	m_enemyStart.position = (sf::Vector2f(400.0f, 0.0f));
+	m_enemyEnd.position = (sf::Vector2f(400.0f, 300.0f));
+	m_enemyStart.color = sf::Color::Blue;
+	m_enemyEnd.color = sf::Color::Blue;
+	m_enemyLine.append(m_enemyStart);
+	m_enemyLine.append(m_enemyEnd);
+	// All enemy stuff is pre-determined for the time being.
 }
