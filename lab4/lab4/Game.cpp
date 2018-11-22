@@ -1,4 +1,8 @@
-// author Peter Lowe
+// Author: Joshua Dunne
+// C00241588
+// Date(s): 22/11/18, 
+// Estimated Time: 14 Hours
+// Actual Time: ? Hours (CHANGE THIS)
 
 #include "Game.h"
 #include <iostream>

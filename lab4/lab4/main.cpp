@@ -1,10 +1,9 @@
-/// <summary>
-/// Empty Project for SFML[2.5.0]
-/// 
-/// 
-/// @author Peter Lowe
-/// @date May 2018
-/// </summary>
+// Author: Joshua Dunne
+// C00241588
+// Date(s): 22/11/18, 
+// Estimated Time: 14 Hours
+// Actual Time: ? Hours (CHANGE THIS)
+
 
 #ifdef _DEBUG 
 #pragma comment(lib,"sfml-graphics-d.lib") 
