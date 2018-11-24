@@ -34,9 +34,14 @@ private:
 	bool m_drawLines = false;
 	bool m_hasClicked = false;
 
+	float asteroidSpeed = 5.0f;
+	float beamSpeed = 5.0f;
+
 	sf::RectangleShape m_ground;
 	sf::RectangleShape m_player;
 	sf::RectangleShape m_powerBar;
+
+	sf::Vector2f unitVector = { 0.0f, 0.0f };
 
 	sf::Vertex m_beamStart;
 	sf::Vertex m_beamEnd;

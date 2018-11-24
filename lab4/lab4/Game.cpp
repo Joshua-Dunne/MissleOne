@@ -74,7 +74,6 @@ void Game::processEvents()
 			}
 		}
 
-		sf::Vector2f mouseClickStart{}; // Holds the location of the first click
 
 		if (sf::Mouse::Left == event.mouseButton.button) // If the left mouse button is pressed..
 		{
@@ -117,7 +116,12 @@ void Game::render()
 	//m_window.draw(m_logoSprite);
 	m_window.draw(m_ground);
 	m_window.draw(m_player);
-	m_window.draw(m_beamLine);
+
+	if (m_hasClicked == true) {
+		m_window.draw(m_beamLine);
+	}
+
+
 	m_window.draw(m_enemyLine);
 	m_window.draw(m_powerBar);
 	m_window.display();
@@ -192,4 +196,4 @@ void Game::setupObjects()
 	m_enemyLine.append(m_enemyStart);
 	m_enemyLine.append(m_enemyEnd);
 	// All enemy stuff is pre-determined for the time being.
-}
+}	
