@@ -31,8 +31,8 @@ private:
 	sf::Texture m_logoTexture; // texture used for sfml logo
 	sf::Sprite m_logoSprite; // sprite used for sfml logo
 	bool m_exitGame; // control exiting game
-	bool m_drawLines = false;
 	bool m_hasClicked = false;
+	bool m_drawBeam = false;
 
 	float asteroidSpeed = 5.0f;
 	float beamSpeed = 5.0f;
@@ -41,10 +41,13 @@ private:
 	sf::RectangleShape m_player;
 	sf::RectangleShape m_powerBar;
 
-	sf::Vector2f unitVector = { 0.0f, 0.0f };
+	sf::Vector2f m_beamLength{ 0.0f, 0.0f };
+	sf::Vector2f m_beamPath{ 0.0f, 0.0f };
+	sf::Vector2f m_unitVector{ 0.0f, 0.0f };
 
 	sf::Vertex m_beamStart;
 	sf::Vertex m_beamEnd;
+	sf::Vertex m_beamEndCurrentPos;
 	sf::VertexArray	m_beamLine{ sf::Lines };
 
 	sf::Vertex m_enemyStart;

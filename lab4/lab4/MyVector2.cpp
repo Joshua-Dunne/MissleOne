@@ -59,7 +59,7 @@ sf::Vector2f vectorRotateBy(sf::Vector2f t_vector, float t_angleRadians)
 
 	sf::Vector2f newVectorRotation = { 0,0 };
 	newVectorRotation.x = (t_vector.x * cos(t_angleRadians)) - (t_vector.y * sin(t_angleRadians)); // X * Cos(Radians) - Y * Sin(Radians)
-	newVectorRotation.y = (t_vector.x * sin(t_angleRadians)) + (t_vector.y * cos(t_angleRadians)); // X * Sin(Radians) - Y * Cos(Radians)
+	newVectorRotation.y = (t_vector.x * sin(t_angleRadians)) + (t_vector.y * cos(t_angleRadians)); // X * Sin(Radians) + Y * Cos(Radians)
 	return newVectorRotation;
 }
 
@@ -96,8 +96,13 @@ float vectorScalarProjection(sf::Vector2f t_vector, sf::Vector2f t_onto)
 sf::Vector2f vectorUnitVector(sf::Vector2f t_vector)
 {
 	// t_vector / t_vector's magnitude
-	float vectorMagnitude = vectorLength(t_vector); // Call a previously made function to get the length of a vector.
-	sf::Vector2f unitVector = t_vector / vectorMagnitude; //  Gets the unit vector.
+	float length = vectorLength(t_vector); // Call a previously made function to get the length of a vector.
+	sf::Vector2f unitVector = { 0.0f, 0.0f };
+
+	if (length != 0.0f) {
+		unitVector = t_vector / length; //  Gets the unit vector.
+	}
+
 	// If the original vector is multiplied by the unit vector, it will result as 1.
 	return unitVector;
 }

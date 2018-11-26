@@ -5,6 +5,7 @@
 // Actual Time: ? Hours (CHANGE THIS)
 
 #include "Game.h"
+#include  "MyVector2.h"
 #include <iostream>
 
 
@@ -75,19 +76,16 @@ void Game::processEvents()
 		}
 
 
-		if (sf::Mouse::Left == event.mouseButton.button) // If the left mouse button is pressed..
+		if (sf::Mouse::Left == event.mouseButton.button && event.mouseButton.y < 500) // If the left mouse button is pressed..
 		{
 			if (m_hasClicked == false) {
-				m_beamEnd.position = (sf::Vector2f(event.mouseButton.x, event.mouseButton.y));
-				m_beamLine.append(m_beamEnd);
-				m_drawLines = true;
-				m_hasClicked = true;
-			}
-			else
-			{
 				m_beamLine.clear();
 				m_beamLine.append(m_beamStart);
-				m_hasClicked = false;
+				m_beamEnd.position = (sf::Vector2f(event.mouseButton.x, event.mouseButton.y));
+				m_beamLength = m_beamEnd.position - m_beamStart.position;
+				m_unitVector = vectorUnitVector(m_beamLength);
+				m_hasClicked = true;	
+				m_drawBeam = true;
 			}
 		}
 
@@ -104,7 +102,35 @@ void Game::update(sf::Time t_deltaTime)
 	{
 		m_window.close();
 	}
+
+	if (m_drawBeam == true)
+	{
+		m_beamLine.clear();
+		m_beamLine.append(m_beamStart);
+		m_beamEndCurrentPos.position += (m_unitVector * (beamSpeed + 5));
+		m_beamLine.append(m_beamEndCurrentPos);
+		m_beamPath = m_beamEndCurrentPos.position - m_beamStart.position;
+
+		if (m_beamPath.x > m_beamLength.x && m_beamPath.y < m_beamLength.y)
+		{
+			m_drawBeam = false;
+			m_hasClicked = false;
+			m_beamEndCurrentPos.position = (sf::Vector2f(400.0f, 500.0f)); // Puts the beam's initial position to where the player is.
+			m_beamPath = { 0.0f, 0.0f };
+			m_beamLine.clear();
+		}
+		else if (m_beamPath.x < m_beamLength.x && m_beamPath.y < m_beamLength.y)
+		{
+			m_drawBeam = false;
+			m_hasClicked = false;
+			m_beamEndCurrentPos.position = (sf::Vector2f(400.0f, 500.0f)); // Puts the beam's initial position to where the player is.
+			m_beamPath = { 0.0f, 0.0f };
+			m_beamLine.clear();
+		}
+	}
+
 }
+
 
 /// <summary>
 /// draw the frame and then switch bufers
@@ -116,12 +142,7 @@ void Game::render()
 	//m_window.draw(m_logoSprite);
 	m_window.draw(m_ground);
 	m_window.draw(m_player);
-
-	if (m_hasClicked == true) {
-		m_window.draw(m_beamLine);
-	}
-
-
+	m_window.draw(m_beamLine);
 	m_window.draw(m_enemyLine);
 	m_window.draw(m_powerBar);
 	m_window.display();
@@ -186,6 +207,8 @@ void Game::setupObjects()
 	m_beamStart.position = (sf::Vector2f(400.0f, 500.0f)); // Puts the beam's initial position to where the player is.
 	m_beamStart.color = sf::Color::Yellow; // Sets the color of that point to yellow.
 	m_beamEnd.color = sf::Color::Yellow; // Sets the color of that point to yellow, making the entire line Yellow.
+	m_beamEndCurrentPos.position = (sf::Vector2f(400.0f, 500.0f)); // Puts the beam's initial position to where the player is.
+	m_beamEndCurrentPos.color = sf::Color::Yellow; // Sets the color of that point to yellow, making the entire line Yellow.
 	m_beamLine.append(m_beamStart); // Initially appends the beamStart
 
 	// Sets up the enemy's beam
