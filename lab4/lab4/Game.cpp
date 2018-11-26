@@ -81,11 +81,13 @@ void Game::processEvents()
 			if (m_hasClicked == false) {
 				m_beamLine.clear();
 				m_beamLine.append(m_beamStart);
-				m_beamEnd.position = (sf::Vector2f(event.mouseButton.x, event.mouseButton.y));
+				m_beamEnd.position = static_cast<sf::Vector2f>((sf::Vector2f(event.mouseButton.x, event.mouseButton.y)));
 				m_beamLength = m_beamEnd.position - m_beamStart.position;
 				m_unitVector = vectorUnitVector(m_beamLength);
 				m_hasClicked = true;	
 				m_drawBeam = true;
+				m_powerBarSize = 0.0f;
+				m_powerBar.setSize(sf::Vector2f(m_powerBarSize, 50.0f));
 			}
 		}
 
@@ -98,6 +100,13 @@ void Game::processEvents()
 /// <param name="t_deltaTime">time interval per frame</param>
 void Game::update(sf::Time t_deltaTime)
 {
+
+	
+	if (m_powerBarSize < m_POWERBARMAX && m_hasClicked == false) {
+		m_powerBarSize += 0.5;
+		m_powerBar.setSize(sf::Vector2f(m_powerBarSize, 50.0f));
+	}
+	
 	if (m_exitGame)
 	{
 		m_window.close();
@@ -107,25 +116,36 @@ void Game::update(sf::Time t_deltaTime)
 	{
 		m_beamLine.clear();
 		m_beamLine.append(m_beamStart);
-		m_beamEndCurrentPos.position += (m_unitVector * (beamSpeed + 5));
+		m_beamEndCurrentPos.position += (m_unitVector * (m_beamSpeed + 5));
 		m_beamLine.append(m_beamEndCurrentPos);
 		m_beamPath = m_beamEndCurrentPos.position - m_beamStart.position;
+		
 
-		if (m_beamPath.x > m_beamLength.x && m_beamPath.y < m_beamLength.y)
+		if (m_beamPath.x > m_beamLength.x && m_beamPath.y < m_beamLength.y
+			|| m_beamPath.x < m_beamLength.x && m_beamPath.y < m_beamLength.y)
 		{
-			m_drawBeam = false;
-			m_hasClicked = false;
+			m_drawExplosion = true;
+			m_beamExplosion.setPosition(m_beamEnd.position.x - m_explosionSize, m_beamEnd.position.y - m_explosionSize);
 			m_beamEndCurrentPos.position = (sf::Vector2f(400.0f, 500.0f)); // Puts the beam's initial position to where the player is.
 			m_beamPath = { 0.0f, 0.0f };
 			m_beamLine.clear();
+			m_drawExplosion = true;
+			m_drawBeam = false;
 		}
-		else if (m_beamPath.x < m_beamLength.x && m_beamPath.y < m_beamLength.y)
+	}
+
+	if (m_drawExplosion == true)
+	{
+		m_explosionSize += 0.2f;
+		m_beamExplosion.setRadius(m_explosionSize);
+		m_beamExplosion.setPosition(m_beamEnd.position.x - m_explosionSize, m_beamEnd.position.y - m_explosionSize);
+
+		if (m_explosionSize >= 25.0f)
 		{
-			m_drawBeam = false;
+			m_drawExplosion = false;
+			m_beamExplosion.setPosition(-1000.0f, -1000.0f);
+			m_explosionSize = 10.0f;
 			m_hasClicked = false;
-			m_beamEndCurrentPos.position = (sf::Vector2f(400.0f, 500.0f)); // Puts the beam's initial position to where the player is.
-			m_beamPath = { 0.0f, 0.0f };
-			m_beamLine.clear();
 		}
 	}
 
@@ -141,10 +161,20 @@ void Game::render()
 	//m_window.draw(m_welcomeMessage);
 	//m_window.draw(m_logoSprite);
 	m_window.draw(m_ground);
-	m_window.draw(m_player);
-	m_window.draw(m_beamLine);
 	m_window.draw(m_enemyLine);
+	m_window.draw(m_player);
 	m_window.draw(m_powerBar);
+
+	if (m_drawBeam == true)
+	{
+		m_window.draw(m_beamLine);
+	}
+
+	if (m_drawExplosion == true)
+	{
+		m_window.draw(m_beamExplosion);
+	}
+
 	m_window.display();
 }
 
@@ -199,7 +229,7 @@ void Game::setupObjects()
 	m_player.setFillColor(sf::Color::Red);
 
 	// Sets up the Power Bar
-	m_powerBar.setSize(sf::Vector2f(200.0f, 50.0f));
+	m_powerBar.setSize(sf::Vector2f(m_powerBarSize, 50.0f));
 	m_powerBar.setPosition(sf::Vector2f(50.0f, 525.0f));
 	m_powerBar.setFillColor(sf::Color::Red);
 
@@ -218,5 +248,8 @@ void Game::setupObjects()
 	m_enemyEnd.color = sf::Color::Blue;
 	m_enemyLine.append(m_enemyStart);
 	m_enemyLine.append(m_enemyEnd);
+
+	// Sets up explosion that appears at end of beam.
+	m_beamExplosion.setFillColor(sf::Color::Red);
 	// All enemy stuff is pre-determined for the time being.
 }	

@@ -33,13 +33,19 @@ private:
 	bool m_exitGame; // control exiting game
 	bool m_hasClicked = false;
 	bool m_drawBeam = false;
+	bool m_drawExplosion = false;
 
-	float asteroidSpeed = 5.0f;
-	float beamSpeed = 5.0f;
+	float m_asteroidSpeed = 5.0f;
+	float m_beamSpeed = 5.0f;
+	float m_explosionSize = 10.0f;
+	float m_powerBarSize = 0.0f;
+	const float m_POWERBARMAX = 300.0f;
 
 	sf::RectangleShape m_ground;
 	sf::RectangleShape m_player;
 	sf::RectangleShape m_powerBar;
+
+	sf::CircleShape m_beamExplosion{ m_explosionSize };
 
 	sf::Vector2f m_beamLength{ 0.0f, 0.0f };
 	sf::Vector2f m_beamPath{ 0.0f, 0.0f };
