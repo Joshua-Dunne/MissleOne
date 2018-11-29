@@ -38,8 +38,12 @@ private:
 	float m_asteroidSpeed = 5.0f;
 	float m_beamSpeed = 5.0f;
 	float m_explosionSize = 10.0f;
+	float m_explosionDistance = 0.0f;
 	float m_powerBarSize = 0.0f;
+	float m_powerBarShot = 0.0f;
 	const float m_POWERBARMAX = 300.0f;
+	float m_distanceBetween = 0.0f;
+
 
 	sf::RectangleShape m_ground;
 	sf::RectangleShape m_player;
@@ -48,8 +52,12 @@ private:
 	sf::CircleShape m_beamExplosion{ m_explosionSize };
 
 	sf::Vector2f m_beamLength{ 0.0f, 0.0f };
+	sf::Vector2f m_beamNewLength{ 0.0f, 0.0f };
 	sf::Vector2f m_beamPath{ 0.0f, 0.0f };
+	sf::Vector2f m_maxAltitude{ 0.0f, 0.0f };
 	sf::Vector2f m_unitVector{ 0.0f, 0.0f };
+	sf::Vector2f m_explosionCentre{ 0.0f, 0.0f };
+
 
 	sf::Vertex m_beamStart;
 	sf::Vertex m_beamEnd;

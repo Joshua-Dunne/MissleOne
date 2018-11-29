@@ -75,7 +75,6 @@ void Game::processEvents()
 			}
 		}
 
-
 		if (sf::Mouse::Left == event.mouseButton.button && event.mouseButton.y < 500) // If the left mouse button is pressed..
 		{
 			if (m_hasClicked == false) {
@@ -86,6 +85,7 @@ void Game::processEvents()
 				m_unitVector = vectorUnitVector(m_beamLength);
 				m_hasClicked = true;	
 				m_drawBeam = true;
+				m_powerBarShot = m_powerBarSize;
 				m_powerBarSize = 0.0f;
 				m_powerBar.setSize(sf::Vector2f(m_powerBarSize, 50.0f));
 			}
@@ -100,17 +100,17 @@ void Game::processEvents()
 /// <param name="t_deltaTime">time interval per frame</param>
 void Game::update(sf::Time t_deltaTime)
 {
-
-	
-	if (m_powerBarSize < m_POWERBARMAX && m_hasClicked == false) {
-		m_powerBarSize += 0.5;
-		m_powerBar.setSize(sf::Vector2f(m_powerBarSize, 50.0f));
-	}
-	
 	if (m_exitGame)
 	{
 		m_window.close();
 	}
+
+	if (m_powerBarSize < m_POWERBARMAX && m_hasClicked == false) {
+		m_powerBarSize += 0.5;
+		m_powerBar.setSize(sf::Vector2f(m_powerBarSize, 50.0f));
+		//m_powerBarShot = m_powerBarSize 
+	}
+	
 
 	if (m_drawBeam == true)
 	{
@@ -118,11 +118,10 @@ void Game::update(sf::Time t_deltaTime)
 		m_beamLine.append(m_beamStart);
 		m_beamEndCurrentPos.position += (m_unitVector * (m_beamSpeed + 5));
 		m_beamLine.append(m_beamEndCurrentPos);
-		m_beamPath = m_beamEndCurrentPos.position - m_beamStart.position;
+		//m_maxAltitude = m_beamEnd.position.y / 
 		
 
-		if (m_beamPath.x > m_beamLength.x && m_beamPath.y < m_beamLength.y
-			|| m_beamPath.x < m_beamLength.x && m_beamPath.y < m_beamLength.y)
+		if (m_beamEndCurrentPos.position.y < m_beamEnd.position.y)
 		{
 			m_drawExplosion = true;
 			m_beamExplosion.setPosition(m_beamEnd.position.x - m_explosionSize, m_beamEnd.position.y - m_explosionSize);
@@ -139,6 +138,14 @@ void Game::update(sf::Time t_deltaTime)
 		m_explosionSize += 0.2f;
 		m_beamExplosion.setRadius(m_explosionSize);
 		m_beamExplosion.setPosition(m_beamEnd.position.x - m_explosionSize, m_beamEnd.position.y - m_explosionSize);
+		m_explosionCentre = sf::Vector2f(m_beamExplosion.getPosition().x + m_explosionSize, m_beamExplosion.getPosition().y + m_explosionSize);
+
+		m_distanceBetween = vectorLength(m_enemyEnd.position - m_explosionCentre);
+
+		if (m_distanceBetween < m_explosionSize)
+		{
+			std::cout << "Enemy hit!";
+		}
 
 		if (m_explosionSize >= 25.0f)
 		{
@@ -168,6 +175,7 @@ void Game::render()
 	if (m_drawBeam == true)
 	{
 		m_window.draw(m_beamLine);
+
 	}
 
 	if (m_drawExplosion == true)
@@ -233,7 +241,7 @@ void Game::setupObjects()
 	m_powerBar.setPosition(sf::Vector2f(50.0f, 525.0f));
 	m_powerBar.setFillColor(sf::Color::Red);
 
-	
+	// Sets up the player's beam
 	m_beamStart.position = (sf::Vector2f(400.0f, 500.0f)); // Puts the beam's initial position to where the player is.
 	m_beamStart.color = sf::Color::Yellow; // Sets the color of that point to yellow.
 	m_beamEnd.color = sf::Color::Yellow; // Sets the color of that point to yellow, making the entire line Yellow.
@@ -248,8 +256,10 @@ void Game::setupObjects()
 	m_enemyEnd.color = sf::Color::Blue;
 	m_enemyLine.append(m_enemyStart);
 	m_enemyLine.append(m_enemyEnd);
+	// All enemy stuff is pre-determined for the time being.
 
 	// Sets up explosion that appears at end of beam.
 	m_beamExplosion.setFillColor(sf::Color::Red);
-	// All enemy stuff is pre-determined for the time being.
+	m_beamExplosion.setRadius(m_explosionSize);
+	
 }	
