@@ -20,6 +20,7 @@
 #endif 
 
 #include "game.h"
+#include <stdlib.h>
 
 
 
@@ -29,6 +30,12 @@
 /// <returns>zero</returns>
 int main()
 {
+#ifdef DEBUG
+	srand(10u); // If in Debug Mode, keep the same Debug Seed.
+#else
+	srand(static_cast<unsigned int>(time(nullptr))); // If in Release mode, have a random Debug Seed.
+#endif// DEBUG
+
 	Game game;
 	game.run();
 	return 0;
