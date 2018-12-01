@@ -25,6 +25,7 @@ private:
 	void setupSprite();
 	void setupObjects();
 	void findNewEnemyPosition();
+	void fireBeam();
 
 	sf::RenderWindow m_window; // main SFML window
 	sf::Font m_ArialBlackfont; // font used by message
@@ -36,16 +37,18 @@ private:
 	bool m_drawBeam = false; // Checks if the beam should be drawn.
 	bool m_drawExplosion = false; // Checks if the explosion should be drawn.
 	bool m_drawEnemy = true;
+	bool m_findNewEnemyPosition = false;
 
 	float m_asteroidSpeed = 0.5f; // The Speed of the Asteroid (enemy).
 	float m_beamSpeed = 0.20f; // The Speed of the Player's Laser.
 	float m_explosionSize = 10.0f; // The initial size of the Explosion.
 	float m_powerBarSize = 0.0f; // The initial size of the Power Bar
 	float m_powerBarShot = 0.0f; // Will be used later to determine the altitude
-	const float m_POWERBAR_MAX = 300.0f; // The Maximum Size the Power Bar can go to.
+	const float m_POWERBAR_MAX = 200.0f; // The Maximum Size the Power Bar can go to.
 	const float m_EXPLOSION_MAX = 25.0f;
+	float m_altitude = 0.0f;
 	float m_distanceBetween = 0.0f; // The Distance between the Asteroid and the Explosion's Centre.
-	int enemyCooldown = 0;
+	int enemyCooldown = 1;
 
 
 	sf::RectangleShape m_ground; // Shows the player where the asteroid shouldn't go.

@@ -1,6 +1,6 @@
 // Author: Joshua Dunne
 // C00241588
-// Date(s): 22/11/18, 26/11/18, 29/11/18
+// Date(s): 22/11/18, 26/11/18, 29/11/18, 30/11/18
 // Estimated Time: 14 Hours
 // Actual Time: ? Hours (CHANGE THIS)
 
@@ -76,12 +76,12 @@ void Game::processEvents()
 			}
 		}
 
-		if (sf::Mouse::Left == event.mouseButton.button && event.mouseButton.y < 500) 
+		if (sf::Mouse::Left == event.mouseButton.button && event.mouseButton.y < 500)
 		{// If the left mouse button is pressed and their mouse is above 100px...
 			if (m_hasClicked == false) { // If the Player hasn't clicked yet
 				m_beamLine.clear(); // Clear any existing vertices in the Vertex Array.
 				m_beamLine.append(m_beamStart); // Immediately append the start vertex, as it's never going to change.
-				m_beamEnd.position = static_cast<sf::Vector2f>((sf::Vector2f(event.mouseButton.x, event.mouseButton.y)));
+				m_beamEnd.position = sf::Vector2f(static_cast<float>(event.mouseButton.x), static_cast<float>(event.mouseButton.y));
 				// Set the beamEnd's position to where the user clicked, and use a static cast to avoid conversion warnings.
 				m_beamLength = m_beamEnd.position - m_beamStart.position;
 				// Get the line between two points.
@@ -91,16 +91,17 @@ void Game::processEvents()
 				m_drawBeam = true; // Draw the player's beam.
 				m_powerBarSize = 0.0f; // Reset the size of the Power Bar.
 				m_powerBar.setSize(sf::Vector2f(m_powerBarSize, 50.0f)); // Make the change.
+				
 			}
 		}
-
+#ifdef  _DEBUG
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Space))
 		{
 			findNewEnemyPosition();
 		}
+#endif //  _DEBUG
 	}
 }
-
 /// <summary>
 /// Update the game world
 /// </summary>
@@ -116,22 +117,24 @@ void Game::update(sf::Time t_deltaTime)
 		// If the Power Bar hasn't reached it's max size and the user has not clicked..
 		m_powerBarSize += 0.5; // Increase the size by 0.5f.
 		m_powerBar.setSize(sf::Vector2f(m_powerBarSize, 50.0f)); // Make the change.
+		m_altitude = 500.0f - (m_powerBarSize * 2);
 	}
 	
 	//if (m_drawEnemy == true) {
-
-	if (m_enemyStart.position.x >= 750 || m_enemyStart.position.x <= 50) { // If the enemy's start position is off screen-ish
-		m_enemyEnd.position = sf::Vector2f(rand() % 800, 600); // Get a new position
-	} else if (m_enemyEnd.position.x >= 750 || m_enemyEnd.position.x <= 50) { // If the enemy's end position is off screen-ish
-		m_enemyStart.position = (sf::Vector2f(rand() % 800, 0.0f)); // Get a new position
-	} else  { // Carry on with calculations
-		m_enemyBeamLength = m_enemyEnd.position - m_enemyStart.position; // Get the line
-		m_enemyUnitVector = vectorUnitVector(m_enemyBeamLength); // Get the vector unit of the line
-		m_enemyLine.clear(); // Clear any original vertices within the Vertex Array.
-		m_enemyLine.append(m_enemyStart); // Append the start point first.
-		m_enemyEndCurrentPos.position += (m_enemyUnitVector * (m_asteroidSpeed)); // Find the new position for the end point.
-		m_enemyLine.append(m_enemyEndCurrentPos); // Append it to the Vertex Array.
+	if (m_drawEnemy == true) {
+		if (m_enemyBeamLength.x > 800 || m_enemyBeamLength.y > 600) { // If the enemy's start position is off screen-ish
+			m_enemyStart.position = (sf::Vector2f(static_cast<float>(rand() % 800), 0.0f)); // Get a new position
+			m_enemyEnd.position = sf::Vector2f(static_cast<float>(rand() % 800), 600.0f); // Get a new position
+			m_enemyBeamLength = m_enemyEnd.position - m_enemyStart.position; // Get the line
 		}
+		else { // Carry on with calculations
+			m_enemyUnitVector = vectorUnitVector(m_enemyBeamLength); // Get the vector unit of the line
+			m_enemyLine.clear(); // Clear any original vertices within the Vertex Array.
+			m_enemyLine.append(m_enemyStart); // Append the start point first.
+			m_enemyEndCurrentPos.position += (m_enemyUnitVector * (m_asteroidSpeed)); // Find the new position for the end point.
+			m_enemyLine.append(m_enemyEndCurrentPos); // Append it to the Vertex Array.
+		}
+	}
 	//}
 
 	if (m_enemyEndCurrentPos.position.y > 500)
@@ -141,23 +144,8 @@ void Game::update(sf::Time t_deltaTime)
 	}
 
 	if (m_drawBeam == true)
-	{ // Is true when we want to do stuff with the player's beam.
-		m_beamLine.clear(); // Clear any original vertices within the Vertex Array.
-		m_beamLine.append(m_beamStart); // Immediately append the start position, since it's going to be the same all the time.
-		m_beamEndCurrentPos.position += (m_unitVector * (m_beamSpeed + 5)); // Find the new position for the end point.
-		m_beamLine.append(m_beamEndCurrentPos); // Append it to the Vertex Array.
-		//m_maxAltitude = m_beamEnd.position.y / 
-		
-
-		if (m_beamEndCurrentPos.position.y <= m_beamEnd.position.y)
-		{ // Once the new End Position reaches the same Y position as the old End Position
-			m_drawExplosion = true; // Draw the explosion
-			m_beamExplosion.setPosition(m_beamEnd.position.x - m_explosionSize, m_beamEnd.position.y - m_explosionSize);
-			// Set the explosion's position.
-			m_beamLine.clear(); // Clear the Vertex Array
-			m_beamEndCurrentPos.position = (sf::Vector2f(400.0f, 500.0f)); // Puts the beam's initial position to where the player is.s
-			m_drawBeam = false; // Stop drawing the beam.
-		}
+	{ 
+		fireBeam();
 	}
 
 	if (m_drawExplosion == true)
@@ -166,22 +154,20 @@ void Game::update(sf::Time t_deltaTime)
 
 		m_beamExplosion.setRadius(m_explosionSize); // Make the explosion bigger
 
-		m_beamExplosion.setPosition(m_beamEnd.position.x - m_explosionSize, m_beamEnd.position.y - m_explosionSize);
-		// Sets the position of the Explosion to where the user clicked.
-		// Takes away the explosion size because the origin of a CircleShape is at the top left.
-
 		m_explosionCentre = sf::Vector2f(m_beamExplosion.getPosition().x + m_explosionSize, m_beamExplosion.getPosition().y + m_explosionSize);
 		// Finds the explosion's centre.
 		// Adds the explosion size because the origin of a CircleShape is at the top left, and we want to find the center of it.
 
-
 		m_distanceBetween = vectorLength(sf::Vector2f(m_enemyEndCurrentPos.position) - m_explosionCentre);
 		// Gets the length of the distance between the enemy's end position and the explosion's centre.
 
-		if (m_distanceBetween < m_explosionSize) // If the distance between is less than the explosion's radius..
+		if (m_distanceBetween < m_explosionSize && m_drawEnemy == true) // If the distance between is less than the explosion's radius..
 		{
-			findNewEnemyPosition();
-		}
+			enemyCooldown = (rand() % 40) + 60;
+			m_enemyLine.clear();
+			m_drawEnemy = false;
+			m_findNewEnemyPosition = true;
+		} 
 
 		if (m_explosionSize >= m_EXPLOSION_MAX) // Once the explosion reaches it's max size..
 		{
@@ -191,7 +177,17 @@ void Game::update(sf::Time t_deltaTime)
 		}
 	}
 
+	if (m_findNewEnemyPosition == true)
+	{
+		enemyCooldown--;
+	}
 
+	if (enemyCooldown < 1)
+	{
+		m_findNewEnemyPosition = false;
+		findNewEnemyPosition();
+		enemyCooldown = 1;
+	}
 
 }
 
@@ -289,9 +285,9 @@ void Game::setupObjects()
 	m_enemyStart.color = sf::Color::Blue;
 	m_enemyEnd.color = sf::Color::Blue;
 	m_enemyEndCurrentPos.color = sf::Color::Blue;
-	m_enemyStart.position = (sf::Vector2f(rand() % 800 + 1, 0.0f));
+	m_enemyStart.position = (sf::Vector2f(static_cast<float>(rand() % 800), 0.0f));
 	m_enemyEndCurrentPos.position = m_enemyStart.position;
-	m_enemyEnd.position = sf::Vector2f(rand() % 800 + 1, 300);
+	m_enemyEnd.position = sf::Vector2f(static_cast<float>(rand() % 800), 300);
 	m_enemyBeamLength = m_enemyEnd.position + m_enemyStart.position;
 	m_enemyUnitVector = vectorUnitVector(m_enemyBeamLength);
 
@@ -300,15 +296,47 @@ void Game::setupObjects()
 	// Sets up explosion that appears at end of beam.
 	m_beamExplosion.setFillColor(sf::Color::Red);
 	m_beamExplosion.setRadius(m_explosionSize);
+	m_beamExplosion.setOrigin(m_explosionSize, m_explosionSize);
 	
 }	
 
 void Game::findNewEnemyPosition()
 { // A function that gets a new position for the asteroid.
 	m_enemyLine.clear(); // Clears the line
-	m_enemyStart.position = (sf::Vector2f(rand() % 800, 0.0f)); // Get a new start position
+	m_enemyStart.position = (sf::Vector2f(static_cast<float>(rand() % 800), 0.0f)); // Get a new start position
 	m_enemyEndCurrentPos.position = m_enemyStart.position; // Start the new end position at the start position.
-	m_enemyEnd.position = sf::Vector2f(rand() % 800, 300); // Get a new end position
+	m_enemyEnd.position = sf::Vector2f(static_cast<float>(rand() % 800), 600); // Get a new end position
 	m_enemyBeamLength = m_enemyEnd.position - m_enemyStart.position; // Get the line
 	m_enemyUnitVector = vectorUnitVector(m_enemyBeamLength); // Get the unit vector of that line
+	m_drawEnemy = true;
+}
+
+void Game::fireBeam() 
+{ // A function that increments the player's beam step by step, and spawns a circle at the end of the path.
+	m_beamLine.clear(); // Clear any original vertices within the Vertex Array.
+	m_beamLine.append(m_beamStart); // Immediately append the start position, since it's going to be the same all the time.
+	m_beamEndCurrentPos.position += (m_unitVector * (m_beamSpeed + 5)); // Find the new position for the end point.
+	m_beamLine.append(m_beamEndCurrentPos); // Append it to the Vertex Array.
+	//m_maxAltitude = m_beamEnd.position.y / 
+
+	if (m_beamEndCurrentPos.position.y <= m_altitude)
+	{
+		m_drawExplosion = true; // Draw the explosion
+		m_drawBeam = false; // Stop drawing the beam.
+		m_beamExplosion.setPosition(m_beamEndCurrentPos.position.x, m_beamEndCurrentPos.position.y);
+		// Set the explosion's position.
+		m_beamLine.clear(); // Clear the Vertex Array
+		m_beamEndCurrentPos.position = (sf::Vector2f(400.0f, 500.0f)); // Puts the beam's initial position to where the player is.
+	}
+
+	if (m_beamEndCurrentPos.position.y <= m_beamEnd.position.y)
+	{ // Once the new End Position reaches the same Y position as the old End Position
+		m_drawExplosion = true; // Draw the explosion
+		m_beamExplosion.setPosition(m_beamEnd.position.x, m_beamEnd.position.y);
+		// Set the explosion's position.
+		m_beamLine.clear(); // Clear the Vertex Array
+		m_beamEndCurrentPos.position = (sf::Vector2f(400.0f, 500.0f)); // Puts the beam's initial position to where the player is.
+		m_drawBeam = false; // Stop drawing the beam.
+	}
+
 }
