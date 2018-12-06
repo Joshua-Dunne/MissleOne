@@ -1,8 +1,8 @@
 // Author: Joshua Dunne
 // C00241588
-// Date(s): 22/11/18, 26/11/18, 29/11/18
+// Date(s): 22/11/18, 26/11/18, 29/11/18, 30/11/18, 02/12/18, 04/12/18, 06/12/18
 // Estimated Time: 14 Hours
-// Actual Time: ? Hours (CHANGE THIS)
+// Actual Time: 12 Hours (CHANGE THIS)
 #ifndef GAME
 #define GAME
 
@@ -24,12 +24,16 @@ private:
 	void setupFontAndText();
 	void setupSprite();
 	void setupObjects();
+	void findPlayerClick(sf::Event t_mouse);
 	void findNewEnemyPosition();
 	void fireBeam();
+	void spawnExplosion();
+	void moveAsteroid();
+	void powerBarControl();
 
 	sf::RenderWindow m_window; // main SFML window
 	sf::Font m_ArialBlackfont; // font used by message
-	sf::Text m_welcomeMessage; // text used for message on screen
+	sf::Text m_scoreText; // text used for message on screen
 	sf::Texture m_logoTexture; // texture used for sfml logo
 	sf::Sprite m_logoSprite; // sprite used for sfml logo
 	bool m_exitGame; // control exiting game
@@ -38,6 +42,9 @@ private:
 	bool m_drawExplosion = false; // Checks if the explosion should be drawn.
 	bool m_drawEnemy = true;
 	bool m_findNewEnemyPosition = false;
+	bool m_hasGainedScore = false;
+
+	sf::RectangleShape m_testExplosionCentre;
 
 	float m_asteroidSpeed = 0.5f; // The Speed of the Asteroid (enemy).
 	float m_beamSpeed = 0.20f; // The Speed of the Player's Laser.
@@ -48,7 +55,8 @@ private:
 	const float m_EXPLOSION_MAX = 25.0f;
 	float m_altitude = 0.0f;
 	float m_distanceBetween = 0.0f; // The Distance between the Asteroid and the Explosion's Centre.
-	int enemyCooldown = 1;
+	int enemyCooldown = 1; // How long it takes for the asteroid to come back.
+	int score = 0;
 
 
 	sf::RectangleShape m_ground; // Shows the player where the asteroid shouldn't go.
