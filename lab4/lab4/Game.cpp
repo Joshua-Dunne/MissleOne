@@ -20,6 +20,7 @@ Game::Game() :
 	setupFontAndText(); // load font 
 	setupSprite(); // load texture
 	setupObjects(); // Sets up Ground/Player objects.
+	setupAudio(); // Sets up audio for Extra Features.
 }
 
 /// <summary>
@@ -86,21 +87,28 @@ void Game::processEvents()
 			{
 				findNewEnemyPosition();
 			}
+
+			if (sf::Keyboard::isKeyPressed(sf::Keyboard::T))
+			{
+				m_asteroidSpeed += 0.1f;
+			}
 #endif //  _DEBUG
 		}
 
-		if (sf::Keyboard::isKeyPressed(sf::Keyboard::P))
+		if (m_extraCooldown <= 0)
 		{
-			if (m_extraCooldown <= 0)
+			if (sf::Keyboard::isKeyPressed(sf::Keyboard::P))
 			{
 				if (!m_extraFeatures) // If the extra features aren't enabled..
 				{
 					m_extraFeatures = true; // Enable them.
+					m_backgroundMusic.play();
 
 				}
 				else if (m_extraFeatures) // Otherwise if they're already enable..
 				{
 					m_extraFeatures = false; // Disable them.
+					m_backgroundMusic.stop();
 				}
 				restartGame(); // Restart the game
 				m_extraCooldown = 60;
@@ -142,6 +150,11 @@ void Game::update(sf::Time t_deltaTime)
 		if (m_enemyEndCurrentPos.position.y > 500) // If the asteroid reaches the ground...
 		{
 			m_playerIsDead = true; // The player has died.
+			if (m_extraFeatures) { // If Extra Features is enabled..
+				m_explosionSound.setPitch(0.8f); // Set the pitch differently
+				m_explosionSound.play(); // Play the explosion sound
+				m_backgroundMusic.stop(); // Stop playing the background music
+			}
 		}
 
 		if (m_drawBeam == true) // If the player's beam is ready to go..
@@ -167,6 +180,7 @@ void Game::update(sf::Time t_deltaTime)
 #ifdef _DEBUG
 		m_testExplosionCentre.setPosition(m_explosionCentre);
 		// Shows the centre of the explosion (Debug Only).
+
 #endif
 	}
 }
@@ -185,6 +199,7 @@ void Game::render()
 	}
 	else
 	{
+		m_window.draw(m_background);
 		m_window.draw(m_groundSprite);
 		m_window.draw(m_playerSprite);
 		m_window.draw(m_extrasText);
@@ -214,7 +229,7 @@ void Game::render()
 		m_window.draw(m_gameOverText);
 	}
 #ifdef _DEBUG
-	m_window.draw(m_testExplosionCentre); // Shows the centre of the explosion
+	m_window.draw(m_testExplosionCentre); // Draws the centre of the explosion (Debug Only).
 	
 #endif
 
@@ -269,11 +284,20 @@ void Game::setupSprite()
 		// simple error message if previous call fails
 		std::cout << "problem loading player picture" << std::endl;
 	}
+
+	if (!m_backgroundTexture.loadFromFile("ASSETS\\IMAGES\\background.jpg"))
+	{
+		// simple error message if previous call fails
+		std::cout << "problem loading background" << std::endl;
+	}
 	m_groundSprite.setTexture(m_groundTexture);
 	m_groundSprite.setPosition(0.0f, 300.0f);
 
 	m_playerSprite.setTexture(m_playerTexture);
-	m_playerSprite.setPosition(sf::Vector2f((m_window.getSize().x / 2) - (m_playerTexture.getSize().x / 2), 490.0f));
+	m_playerSprite.setPosition(sf::Vector2f(static_cast<float>((m_window.getSize().x / 2) - (m_playerTexture.getSize().x / 2)), 490.0f));
+	
+	m_background.setTexture(m_backgroundTexture);
+	m_background.setScale(1.25f, 1.0f);
 }
 
 void Game::setupObjects()
@@ -284,7 +308,7 @@ void Game::setupObjects()
 	m_ground.setFillColor(sf::Color::Green); // It's Green now.
 
 	// Sets up the "Player"
-	m_player.setSize(sf::Vector2f(50.0f, 50.0f)); // Set's the "Player"'s size.
+	m_player.setSize(sf::Vector2f(50.0f, 50.0f)); // Sets the "Player"'s size.
 	m_player.setPosition(sf::Vector2f((m_window.getSize().x / 2) - (m_player.getSize().x / 2), 450.0f)); 
 	// Sets the "Player"'s position to above the ground.
 	m_player.setFillColor(sf::Color::Red); // It's Red now.
@@ -323,6 +347,35 @@ void Game::setupObjects()
 #endif
 	
 }
+
+void Game::setupAudio()
+{
+	if (!m_playerBeamBuffer.loadFromFile("ASSETS\\SOUND\\beamJourney.ogg"))
+	{
+		// simple error message if previous call fails
+		std::cout << "problem loading beam sound" << std::endl;
+	}
+
+	if (!m_explosionSoundBuffer.loadFromFile("ASSETS\\SOUND\\explosion.ogg"))
+	{
+		std::cout << "problem loading explosion sound" << std::endl;
+	}
+
+	if (!m_backgroundMusic.openFromFile("ASSETS\\SOUND\\bgmMissleOne.ogg"))
+	{
+		std::cout << "problem loading background music";
+	}
+
+	m_playerBeamSound.setBuffer(m_playerBeamBuffer);
+	m_explosionSound.setBuffer(m_explosionSoundBuffer);
+
+	m_backgroundMusic.setLoop(true); // Lets the Background music loop infinitely (until manually stopped).
+
+	
+	
+}
+
+
 void Game::findPlayerClick(sf::Event t_mouse)
 {
 		m_beamLine.clear(); // Clear any existing vertices in the Vertex Array.
@@ -339,6 +392,9 @@ void Game::findPlayerClick(sf::Event t_mouse)
 		m_powerBar.setSize(sf::Vector2f(m_powerBarSize, 50.0f)); // Make the change.
 		m_hasGainedScore = false; // Lets the player gain score again
 
+		if (m_extraFeatures) { // If extra features are enabled...
+			m_playerBeamSound.play(); // Play the Beam Sound.
+		}
 }
 
 
@@ -360,7 +416,7 @@ void Game::fireBeam()
 	m_beamLine.clear(); // Clear any original vertices within the Vertex Array.
 	m_beamLine.append(m_beamStart); // Immediately append the start position, since it's going to be the same all the time.
 #ifdef _DEBUG
-	m_beamEndCurrentPos.position += (m_unitVector * (m_beamSpeed + 3)); // Find the new position for the end point.
+	m_beamEndCurrentPos.position += (m_unitVector * (m_beamSpeed + 3)); // Player's beam moves faster (Debug Only).
 #else
 	m_beamEndCurrentPos.position += (m_unitVector * (m_beamSpeed)); // Find the new position for the end point.
 #endif
@@ -370,22 +426,32 @@ void Game::fireBeam()
 	if (m_beamEndCurrentPos.position.y <= m_altitude) 
 		// Checks to see if the Player has fired above the Altitude
 	{
-		m_drawExplosion = true; // Draw the explosion
+		m_drawExplosion = true; // Draw the explosion		
 		m_drawBeam = false; // Stop drawing the beam.
 		m_beamExplosion.setPosition(m_beamEndCurrentPos.position.x, m_beamEndCurrentPos.position.y);
 		// Set the explosion's position.
 		m_beamLine.clear(); // Clear the Vertex Array
+		if (m_extraFeatures) {
+			m_playerBeamSound.stop(); // Stop playing the beam's sound
+			m_explosionSound.play(); // Play the explosion sound
+		}
+		
 		
 	}
 	
 	if (m_beamEndCurrentPos.position.y <= m_beamEnd.position.y) 
 		// Checks to see if the player has reached the end of their shot
 	{ // Once the new End Position reaches the same Y position as the old End Position
-		m_drawExplosion = true; // Draw the explosion
+		m_drawExplosion = true; // Draw the explosion		
 		m_beamExplosion.setPosition(m_beamEnd.position.x, m_beamEnd.position.y);
 		// Set the explosion's position.
 		m_beamLine.clear(); // Clear the Vertex Array
 		m_drawBeam = false; // Stop drawing the beam.
+		if (m_extraFeatures) { // If Extra Features are enabled...
+			m_playerBeamSound.stop(); // Stop playing the beam's sound
+			m_explosionSound.play(); // Play the explosion sound
+		}
+
 	}
 }
 
@@ -427,6 +493,9 @@ void Game::spawnExplosion() {
 		m_explosionSize = 10.0f; // Put it's size back to normal.
 		m_beamEndCurrentPos.position = (sf::Vector2f(400.0f, 500.0f)); // Puts the beam's initial position to where the player is.
 		m_hasClicked = false; // Let the user click again.
+		if (m_extraFeatures) { // If extra features are enabled...
+			m_explosionSound.stop(); // Stop playing the explosion's sound
+		}	
 	}
 
 }
@@ -461,10 +530,10 @@ void Game::restartGame()
 { // Puts everything back to neutral, so nothing is carried over.
   // Used when Extra Features are enabled/disabled.	
 	m_beamLine.clear(); // Clear the line
-	m_enemyLine.clear();
-	findNewEnemyPosition();
-	m_powerBarSize = 0.0f;
-	m_powerBar.setSize(sf::Vector2f(m_powerBarSize, 50.0f));
+	m_enemyLine.clear(); // Clear the enemy line
+	findNewEnemyPosition(); // Find a new position for the enemy
+	m_powerBarSize = 0.0f; // Reset power bar size
+	m_powerBar.setSize(sf::Vector2f(m_powerBarSize, 50.0f)); // Reset power bar size
 	m_altitude = 500.0f - (m_powerBarSize * 2); // Restarts Altitude
 	m_explosionSize = 10.0f; // Put it's size back to normal.
 	m_beamEndCurrentPos.position = (sf::Vector2f(400.0f, 500.0f)); // Puts the beam's initial position to where the player is.
@@ -474,4 +543,8 @@ void Game::restartGame()
 	m_enemyCooldown = 1; // Puts the cooldown back to normal
 	m_drawBeam = false; // No longer drawing the beam
 	m_drawExplosion = false; // No longer drawing the explosion
+	m_hasClicked = false; // Let the player click again
+	m_playerBeamSound.stop(); // Stop the Beam's Sound
+	m_explosionSound.stop(); // Stop the Explosion Sound
+	
 }

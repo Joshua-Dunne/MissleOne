@@ -8,6 +8,7 @@
 #define GAME
 
 #include <SFML/Graphics.hpp>
+#include <SFML/Audio.hpp>
 
 class Game
 {
@@ -25,6 +26,7 @@ private:
 	void setupFontAndText();
 	void setupSprite(); // Sets up any Sprites.
 	void setupObjects(); // Sets up any game objects.
+	void setupAudio();
 	void findPlayerClick(sf::Event t_mouse); // Find where the player clicked.
 	void findNewEnemyPosition(); // Find a new position for the enemy.
 	void fireBeam(); // Find the beam's path and increment it bit by bit.
@@ -37,11 +39,21 @@ private:
 	sf::Font m_ArialBlackfont; // font used by message
 	sf::Text m_scoreText; // Text used to display score
 	sf::Text m_gameOverText; // Text used to show when the player has lost
+
+	//----------------------------------------------------------------------------------- EXTRA FEATURES
 	sf::Text m_extrasText; // Text used to show the player they're using Extra Features.
-	sf::Texture m_groundTexture;
-	sf::Texture m_playerTexture;
-	sf::Sprite m_groundSprite;
-	sf::Sprite m_playerSprite;
+	sf::Texture m_groundTexture; // Texture for the Ground
+	sf::Texture m_playerTexture; // Texture for the Player
+	sf::Texture m_backgroundTexture; // Texture for Background
+	sf::Sprite m_groundSprite; // Ground Sprite
+	sf::Sprite m_playerSprite; // Player Sprite
+	sf::Sprite m_background; // Background Sprite
+	sf::SoundBuffer m_playerBeamBuffer; // Sound Buffer for the Player's Beam
+	sf::SoundBuffer m_explosionSoundBuffer; // Sound Buffer for the Explosion
+	sf::Sound m_playerBeamSound; // Plays when the Player shoots their laser.
+	sf::Sound m_explosionSound; // Plays when an explosion happens.
+	sf::Music m_backgroundMusic; // Background music
+	//----------------------------------------------------------------------------------- EXTRA FEATURES
 	bool m_exitGame; // control exiting game
 	bool m_hasClicked = false; // Checks if the User has clicked.
 	bool m_drawBeam = false; // Checks if the beam should be drawn.
