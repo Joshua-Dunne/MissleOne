@@ -2,7 +2,7 @@
 // C00241588
 // Date(s): 22/11/18, 26/11/18, 29/11/18, 30/11/18, 02/12/18, 04/12/18, 06/12/18, 07/12/18, 09/12/18
 // Estimated Time: 14 Hours
-// Actual Time: 15 Hours
+// Actual Time: 16 Hours
 
 #include "Game.h"
 #include "MyVector2.h"
@@ -81,13 +81,34 @@ void Game::processEvents()
 					findPlayerClick(event);
 				}
 			}
-		}
 #ifdef  _DEBUG
-		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Space))
-		{
-			findNewEnemyPosition();
-		}
+			if (sf::Keyboard::isKeyPressed(sf::Keyboard::Space))
+			{
+				findNewEnemyPosition();
+			}
 #endif //  _DEBUG
+		}
+
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::P))
+		{
+			if (m_extraCooldown <= 0)
+			{
+				if (!m_extraFeatures) // If the extra features aren't enabled..
+				{
+					m_extraFeatures = true; // Enable them.
+
+				}
+				else if (m_extraFeatures) // Otherwise if they're already enable..
+				{
+					m_extraFeatures = false; // Disable them.
+				}
+				restartGame(); // Restart the game
+				m_extraCooldown = 60;
+				// A cooldown is put in place to give some time between button presses.
+				// This is done since I cannot say "When the button is pressed down/released".
+				// I can only check for if it's being held.
+			}
+		}
 	}
 }
 /// <summary>
@@ -100,6 +121,8 @@ void Game::update(sf::Time t_deltaTime)
 	{
 		m_window.close(); // Bye
 	}
+
+	m_extraCooldown--;
 
 	if (!m_playerIsDead) { // If the player is still alive, continue with the game.
 		if (m_powerBarSize < m_POWERBAR_MAX && m_hasClicked == false) {
@@ -133,10 +156,10 @@ void Game::update(sf::Time t_deltaTime)
 
 		if (m_findNewEnemyPosition == true)
 		{
-			enemyCooldown--; // Wait a while before finding a new position.
+			m_enemyCooldown--; // Wait a while before finding a new position.
 		}
 
-		if (enemyCooldown <= 0) // When done waiting...
+		if (m_enemyCooldown <= 0) // When done waiting...
 		{
 			findNewEnemyPosition(); // Find a new position.
 		}
@@ -155,8 +178,18 @@ void Game::update(sf::Time t_deltaTime)
 void Game::render()
 {
 	m_window.clear(sf::Color::Black);
-	m_window.draw(m_ground);
-	m_window.draw(m_player);
+	if (!m_extraFeatures)
+	{
+		m_window.draw(m_ground);
+		m_window.draw(m_player);
+	}
+	else
+	{
+		m_window.draw(m_groundSprite);
+		m_window.draw(m_playerSprite);
+		m_window.draw(m_extrasText);
+	}
+	
 	m_window.draw(m_powerBar);
 	m_window.draw(m_scoreText);
 
@@ -180,7 +213,6 @@ void Game::render()
 	else { // If the player is dead, draw the Game Over text.
 		m_window.draw(m_gameOverText);
 	}
-
 #ifdef _DEBUG
 	m_window.draw(m_testExplosionCentre); // Shows the centre of the explosion
 	
@@ -212,23 +244,36 @@ void Game::setupFontAndText()
 	m_gameOverText.setCharacterSize(32u); // Character Size looks for an unsigned int
 	m_gameOverText.setFillColor(sf::Color::Red);
 	m_gameOverText.getLocalBounds();
+
+	m_extrasText.setFont(m_ArialBlackfont);
+	m_extrasText.setString("Extra Features Enabled!");
+	m_extrasText.setPosition(20.0f, 0.0f);
+	m_extrasText.setCharacterSize(20u); // Character Size looks for an unsigned int
+	m_extrasText.setFillColor(sf::Color(255, 255, 255, 127));
 }
 
 /// <summary>
 /// load the texture and setup the sprite for the logo
 /// </summary>
 void Game::setupSprite()
-{ // Will be used to draw some sprites for the player.
+{
 
-	/*
-	if (!m_logoTexture.loadFromFile("ASSETS\\IMAGES\\SFML-LOGO.png"))
+	if (!m_groundTexture.loadFromFile("ASSETS\\IMAGES\\ground.png"))
 	{
 		// simple error message if previous call fails
-		std::cout << "problem loading logo" << std::endl;
+		std::cout << "problem loading ground picture" << std::endl;
 	}
-	m_logoSprite.setTexture(m_logoTexture);
-	m_logoSprite.setPosition(300.0f, 180.0f);
-	*/
+
+	if (!m_playerTexture.loadFromFile("ASSETS\\IMAGES\\player.png"))
+	{
+		// simple error message if previous call fails
+		std::cout << "problem loading player picture" << std::endl;
+	}
+	m_groundSprite.setTexture(m_groundTexture);
+	m_groundSprite.setPosition(0.0f, 300.0f);
+
+	m_playerSprite.setTexture(m_playerTexture);
+	m_playerSprite.setPosition(sf::Vector2f((m_window.getSize().x / 2) - (m_playerTexture.getSize().x / 2), 490.0f));
 }
 
 void Game::setupObjects()
@@ -306,7 +351,7 @@ void Game::findNewEnemyPosition()
 	m_enemyEnd.position = sf::Vector2f(static_cast<float>(rand() % 800), 600); // Get a new end position
 	m_enemyBeamLength = m_enemyEnd.position - m_enemyStart.position; // Get the line
 	m_enemyUnitVector = vectorUnitVector(m_enemyBeamLength); // Get the unit vector of that line
-	enemyCooldown = 1; // Reset the enemy cooldown
+	m_enemyCooldown = 1; // Reset the enemy cooldown
 	m_drawEnemy = true; // Draw the enemy
 }
 
@@ -356,13 +401,21 @@ void Game::spawnExplosion() {
 	// Gets the length of the distance between the enemy's end position and the explosion's centre.
 	if (m_distanceBetween < m_explosionSize) // If the distance between is less than the explosion's radius..
 	{ // Aka if the end point and the explosion are touching...
-		enemyCooldown = (rand() % 40) + newCooldown; // Wait a random time between the next spawn.
-		newCooldown--; // Decrement by 1 to increase difficulty.
+		m_enemyCooldown = (rand() % 40) + m_newCooldown; // Wait a random time between the next spawn.
+		m_newCooldown--; // Decrement by 1 to increase difficulty.
 		m_enemyLine.clear(); // Clear the Asteroid's old path.
 		m_drawEnemy = false; // Stop drawing the enemy.
 		m_findNewEnemyPosition = true; // Go find a new position.
 		if (!m_hasGainedScore) { // If the player hasn't gained score
-			m_score += 5; // Give the player some score
+			if (m_extraFeatures) // If extra features is enabled..
+			{
+				m_score += m_scoreToGain; // Use advanced scoring.
+			}
+			else
+			{
+				m_score += 5; // Give the player some score
+			}
+			
 			m_scoreText.setString("Score: " + std::to_string(m_score)); // Set the score string
 			m_hasGainedScore = true; // The Player has now gained score
 		}
@@ -385,9 +438,10 @@ void Game::moveAsteroid()
 	m_enemyLine.append(m_enemyStart); // Append the start point first.
 	m_enemyEndCurrentPos.position += (m_enemyUnitVector * (m_asteroidSpeed)); // Find the new position for the end point.
 	m_enemyLine.append(m_enemyEndCurrentPos); // Append it to the Vertex Array.
-	//m_scoreToGain = static_cast<int>(m_enemyEndCurrentPos.position.y / 20); // Find the score that the player will gain
+	if (m_extraFeatures) {
+		m_scoreToGain = static_cast<int>(m_enemyEndCurrentPos.position.y / 20); // Find the score that the player will gain
+	}
 	// The closer the asteroid is to the ground, the more score the player will gain
-	// m_scoreToGain will be used later for an advanced scoring system in the Extra Features.
 }
 
 void Game::powerBarControl()
@@ -401,4 +455,23 @@ void Game::powerBarControl()
 	m_powerBar.setSize(sf::Vector2f(m_powerBarSize, 50.0f)); // Make the change.
 	m_altitude = 500.0f - (m_powerBarSize * 2); // Find how far up the player can fire.
 
+}
+
+void Game::restartGame()
+{ // Puts everything back to neutral, so nothing is carried over.
+  // Used when Extra Features are enabled/disabled.	
+	m_beamLine.clear(); // Clear the line
+	m_enemyLine.clear();
+	findNewEnemyPosition();
+	m_powerBarSize = 0.0f;
+	m_powerBar.setSize(sf::Vector2f(m_powerBarSize, 50.0f));
+	m_altitude = 500.0f - (m_powerBarSize * 2); // Restarts Altitude
+	m_explosionSize = 10.0f; // Put it's size back to normal.
+	m_beamEndCurrentPos.position = (sf::Vector2f(400.0f, 500.0f)); // Puts the beam's initial position to where the player is.
+	m_score = 0; // Resets score
+	m_scoreText.setString("Score: " + std::to_string(m_score)); // Reset's the string
+	m_scoreToGain = 0; // Resets the advanced scoring system
+	m_enemyCooldown = 1; // Puts the cooldown back to normal
+	m_drawBeam = false; // No longer drawing the beam
+	m_drawExplosion = false; // No longer drawing the explosion
 }

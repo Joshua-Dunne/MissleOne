@@ -2,7 +2,8 @@
 // C00241588
 // Date(s): 22/11/18, 26/11/18, 29/11/18, 30/11/18, 02/12/18, 04/12/18, 06/12/18, 07/12/18, 09/12/18
 // Estimated Time: 14 Hours
-// Actual Time: 15 Hours
+// Actual Time: 16 Hours
+
 #ifndef GAME
 #define GAME
 
@@ -30,11 +31,17 @@ private:
 	void spawnExplosion(); // Spawn an explosion at the end of the beam.
 	void moveAsteroid(); // Find the enemy's path and increment it bit by bit.
 	void powerBarControl(); // Controls Power Bar and determines max altitude for player's beam
+	void restartGame(); // Refreshes the game's score, powerbar, enemy positions and beam positions.
 
 	sf::RenderWindow m_window; // main SFML window
 	sf::Font m_ArialBlackfont; // font used by message
 	sf::Text m_scoreText; // Text used to display score
 	sf::Text m_gameOverText; // Text used to show when the player has lost
+	sf::Text m_extrasText; // Text used to show the player they're using Extra Features.
+	sf::Texture m_groundTexture;
+	sf::Texture m_playerTexture;
+	sf::Sprite m_groundSprite;
+	sf::Sprite m_playerSprite;
 	bool m_exitGame; // control exiting game
 	bool m_hasClicked = false; // Checks if the User has clicked.
 	bool m_drawBeam = false; // Checks if the beam should be drawn.
@@ -43,6 +50,7 @@ private:
 	bool m_findNewEnemyPosition = false; // Checks to see if the enemy needs a new start position.
 	bool m_hasGainedScore = false; // Checks to see if the player has gained score.
 	bool m_playerIsDead = false; // Checks to see if the game is over.
+	bool m_extraFeatures = false;
 
 	sf::RectangleShape m_testExplosionCentre;
 
@@ -55,11 +63,12 @@ private:
 	const float m_EXPLOSION_MAX = 25.0f; // The Maximum Size of the explosion's radius.
 	float m_altitude = 0.0f; // The Maximum distance the player's beam can go up.
 	float m_distanceBetween = 0.0f; // The Distance between the Asteroid and the Explosion's Centre.
-	int enemyCooldown = 1; // How long it takes for the asteroid to come back.
-	int newCooldown = 20; 
+	int m_enemyCooldown = 1; // How long it takes for the asteroid to come back.
+	int m_newCooldown = 20; 
 	// Decrements when the player makes a successful hit, making the asteroid spawn faster.
 	int m_score = 0; // The Player's current score
 	int m_scoreToGain = 0; // The Score the player will gain
+	int m_extraCooldown = 0;
 
 
 	sf::RectangleShape m_ground; // Shows the player where the asteroid shouldn't go.
