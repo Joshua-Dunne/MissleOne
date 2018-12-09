@@ -1,8 +1,8 @@
 // Author: Joshua Dunne
 // C00241588
-// Date(s): 22/11/18, 26/11/18, 29/11/18, 30/11/18, 02/12/18, 04/12/18, 06/12/18
+// Date(s): 22/11/18, 26/11/18, 29/11/18, 30/11/18, 02/12/18, 04/12/18, 06/12/18, 07/12/18, 09/12/18
 // Estimated Time: 14 Hours
-// Actual Time: 12 Hours (CHANGE THIS)
+// Actual Time: 15 Hours
 #ifndef GAME
 #define GAME
 
@@ -22,41 +22,44 @@ private:
 	void render();
 
 	void setupFontAndText();
-	void setupSprite();
-	void setupObjects();
-	void findPlayerClick(sf::Event t_mouse);
-	void findNewEnemyPosition();
-	void fireBeam();
-	void spawnExplosion();
-	void moveAsteroid();
-	void powerBarControl();
+	void setupSprite(); // Sets up any Sprites.
+	void setupObjects(); // Sets up any game objects.
+	void findPlayerClick(sf::Event t_mouse); // Find where the player clicked.
+	void findNewEnemyPosition(); // Find a new position for the enemy.
+	void fireBeam(); // Find the beam's path and increment it bit by bit.
+	void spawnExplosion(); // Spawn an explosion at the end of the beam.
+	void moveAsteroid(); // Find the enemy's path and increment it bit by bit.
+	void powerBarControl(); // Controls Power Bar and determines max altitude for player's beam
 
 	sf::RenderWindow m_window; // main SFML window
 	sf::Font m_ArialBlackfont; // font used by message
-	sf::Text m_scoreText; // text used for message on screen
-	sf::Texture m_logoTexture; // texture used for sfml logo
-	sf::Sprite m_logoSprite; // sprite used for sfml logo
+	sf::Text m_scoreText; // Text used to display score
+	sf::Text m_gameOverText; // Text used to show when the player has lost
 	bool m_exitGame; // control exiting game
 	bool m_hasClicked = false; // Checks if the User has clicked.
 	bool m_drawBeam = false; // Checks if the beam should be drawn.
 	bool m_drawExplosion = false; // Checks if the explosion should be drawn.
-	bool m_drawEnemy = true;
-	bool m_findNewEnemyPosition = false;
-	bool m_hasGainedScore = false;
+	bool m_drawEnemy = true; // Checks to see if the enemy should be drawn.
+	bool m_findNewEnemyPosition = false; // Checks to see if the enemy needs a new start position.
+	bool m_hasGainedScore = false; // Checks to see if the player has gained score.
+	bool m_playerIsDead = false; // Checks to see if the game is over.
 
 	sf::RectangleShape m_testExplosionCentre;
 
 	float m_asteroidSpeed = 0.5f; // The Speed of the Asteroid (enemy).
-	float m_beamSpeed = 0.20f; // The Speed of the Player's Laser.
+	float m_beamSpeed = 3.0f; // The Speed of the Player's Laser.
 	float m_explosionSize = 10.0f; // The initial size of the Explosion.
 	float m_powerBarSize = 0.0f; // The initial size of the Power Bar
 	float m_powerBarShot = 0.0f; // Will be used later to determine the altitude
 	const float m_POWERBAR_MAX = 200.0f; // The Maximum Size the Power Bar can go to.
-	const float m_EXPLOSION_MAX = 25.0f;
-	float m_altitude = 0.0f;
+	const float m_EXPLOSION_MAX = 25.0f; // The Maximum Size of the explosion's radius.
+	float m_altitude = 0.0f; // The Maximum distance the player's beam can go up.
 	float m_distanceBetween = 0.0f; // The Distance between the Asteroid and the Explosion's Centre.
 	int enemyCooldown = 1; // How long it takes for the asteroid to come back.
-	int score = 0;
+	int newCooldown = 20; 
+	// Decrements when the player makes a successful hit, making the asteroid spawn faster.
+	int m_score = 0; // The Player's current score
+	int m_scoreToGain = 0; // The Score the player will gain
 
 
 	sf::RectangleShape m_ground; // Shows the player where the asteroid shouldn't go.

@@ -1,8 +1,8 @@
 // Author: Joshua Dunne
 // C00241588
-// Date(s): 22/11/18, 26/11/18, 29/11/18, 30/11/18, 02/12/18, 04/12/18, 06/12/18
+// Date(s): 22/11/18, 26/11/18, 29/11/18, 30/11/18, 02/12/18, 04/12/18, 06/12/18, 07/12/18, 09/12/18
 // Estimated Time: 14 Hours
-// Actual Time: 12 Hours (CHANGE THIS)
+// Actual Time: 15 Hours
 
 #include "Game.h"
 #include "MyVector2.h"
@@ -10,7 +10,7 @@
 #include <stdlib.h>
 
 /// <summary>
-/// default construcor
+/// default constructor
 /// pass parameters for sfml window, setup m_exitGame
 /// </summary>
 Game::Game() :
@@ -74,11 +74,12 @@ void Game::processEvents()
 				m_exitGame = true;
 			}
 		}
-
-		if (sf::Mouse::Left == event.mouseButton.button && event.mouseButton.y < 500)
-		{// If the left mouse button is pressed and their mouse is above 100px...
-			if (m_hasClicked == false) { // If the Player hasn't clicked yet
-				findPlayerClick(event);
+		if (!m_playerIsDead) {
+			if (sf::Mouse::Left == event.mouseButton.button && event.mouseButton.y < 500)
+			{// If the left mouse button is pressed and their mouse is above 100px...
+				if (m_hasClicked == false) { // If the Player hasn't clicked yet
+					findPlayerClick(event);
+				}
 			}
 		}
 #ifdef  _DEBUG
@@ -100,56 +101,56 @@ void Game::update(sf::Time t_deltaTime)
 		m_window.close(); // Bye
 	}
 
-	if (m_powerBarSize < m_POWERBAR_MAX && m_hasClicked == false) {
-		// If the Power Bar hasn't reached it's max size and the user has not clicked..
-		powerBarControl();
-	}
-	
-	if (m_drawEnemy == true) {
-		if (m_enemyBeamLength.x > 800 || m_enemyBeamLength.y > 600) { // If the enemy's start position is off screen-ish
-			findNewEnemyPosition();
+	if (!m_playerIsDead) { // If the player is still alive, continue with the game.
+		if (m_powerBarSize < m_POWERBAR_MAX && m_hasClicked == false) {
+			// If the Power Bar hasn't reached it's max size and the user has not clicked..
+			powerBarControl();
 		}
-		else { // Carry on with calculations
-			moveAsteroid();
+
+		if (m_drawEnemy == true) { // If the enemy is ready to go..
+			if (m_enemyBeamLength.x > 800 || m_enemyBeamLength.y > 600) { // If the enemy's start position is off screen-ish
+				findNewEnemyPosition(); // Get a new position instead.
+			}
+			else { // Carry on with calculations
+				moveAsteroid();
+			}
 		}
-	}
 
-	if (m_enemyEndCurrentPos.position.y > 500)
-	{
-		findNewEnemyPosition(); // If the enemy's new end position goes below 500px, generate a new line.
-		// This is temporary as the player is meant to lose, but I will implement it later.
-	}
+		if (m_enemyEndCurrentPos.position.y > 500) // If the asteroid reaches the ground...
+		{
+			m_playerIsDead = true; // The player has died.
+		}
 
-	if (m_drawBeam == true)
-	{ 
-		fireBeam();
-	}
+		if (m_drawBeam == true) // If the player's beam is ready to go..
+		{
+			fireBeam();
+		}
 
-	if (m_drawExplosion == true)
-	{
-		spawnExplosion();
-	}
+		if (m_drawExplosion == true) // If the explosion must be drawn..
+		{
+			spawnExplosion();
+		}
 
-	if (m_findNewEnemyPosition == true)
-	{
-		enemyCooldown--;
-	}
+		if (m_findNewEnemyPosition == true)
+		{
+			enemyCooldown--; // Wait a while before finding a new position.
+		}
 
-	if (enemyCooldown <= 0)
-	{
-		m_findNewEnemyPosition = false;
-		findNewEnemyPosition();
-	}
+		if (enemyCooldown <= 0) // When done waiting...
+		{
+			findNewEnemyPosition(); // Find a new position.
+		}
 
 #ifdef _DEBUG
-	m_testExplosionCentre.setPosition(m_explosionCentre);
+		m_testExplosionCentre.setPosition(m_explosionCentre);
+		// Shows the centre of the explosion (Debug Only).
 #endif
-
+	}
 }
 
 
 /// <summary>
-/// draw the frame and then switch bufers
+/// draw the frame and then switch buffers
 /// </summary>
 void Game::render()
 {
@@ -159,24 +160,30 @@ void Game::render()
 	m_window.draw(m_powerBar);
 	m_window.draw(m_scoreText);
 
-	if (m_drawEnemy)
-	{
-		m_window.draw(m_enemyLine);
+	if (!m_playerIsDead) { // If the player is not dead, draw moving game elements.
+		if (m_drawEnemy)
+		{
+			m_window.draw(m_enemyLine);
+		}
+
+		if (m_drawBeam) // Only draw the beam when you need it.
+		{
+			m_window.draw(m_beamLine);
+
+		}
+
+		if (m_drawExplosion) // Only draw the explosion when you need it.
+		{
+			m_window.draw(m_beamExplosion);
+		}
 	}
-
-	if (m_drawBeam) // Only draw the beam when you need it.
-	{
-		m_window.draw(m_beamLine);
-
-	}
-
-	if (m_drawExplosion) // Only draw the explosion when you need it.
-	{
-		m_window.draw(m_beamExplosion);
+	else { // If the player is dead, draw the Game Over text.
+		m_window.draw(m_gameOverText);
 	}
 
 #ifdef _DEBUG
-	m_window.draw(m_testExplosionCentre);
+	m_window.draw(m_testExplosionCentre); // Shows the centre of the explosion
+	
 #endif
 
 	m_window.display();
@@ -193,10 +200,18 @@ void Game::setupFontAndText()
 	}
 
 	m_scoreText.setFont(m_ArialBlackfont);
-	m_scoreText.setString("Score: " + std::to_string(score));
+	m_scoreText.setString("Score: " + std::to_string(m_score));
 	m_scoreText.setPosition(500.0f, 500.0f);
 	m_scoreText.setCharacterSize(24u); // Character Size looks for an unsigned int
 	m_scoreText.setFillColor(sf::Color::White);
+
+	m_gameOverText.setFont(m_ArialBlackfont);
+	m_gameOverText.setString("Game Over");
+	m_gameOverText.setPosition(m_window.getSize().x / 2 - m_gameOverText.getGlobalBounds().width / 2
+		, 400.0f);
+	m_gameOverText.setCharacterSize(32u); // Character Size looks for an unsigned int
+	m_gameOverText.setFillColor(sf::Color::Red);
+	m_gameOverText.getLocalBounds();
 }
 
 /// <summary>
@@ -277,13 +292,14 @@ void Game::findPlayerClick(sf::Event t_mouse)
 		m_drawBeam = true; // Draw the player's beam.
 		m_powerBarSize = 0.0f; // Reset the size of the Power Bar.
 		m_powerBar.setSize(sf::Vector2f(m_powerBarSize, 50.0f)); // Make the change.
-		m_hasGainedScore = false;
+		m_hasGainedScore = false; // Lets the player gain score again
 
 }
 
 
 void Game::findNewEnemyPosition()
 { // A function that gets a new position for the asteroid.
+	m_findNewEnemyPosition = false; // Stop finding a new position
 	m_enemyLine.clear(); // Clears the line
 	m_enemyStart.position = (sf::Vector2f(static_cast<float>(rand() % 800), 0.0f)); // Get a new start position
 	m_enemyEndCurrentPos.position = m_enemyStart.position; // Start the new end position at the start position.
@@ -298,7 +314,12 @@ void Game::fireBeam()
 { // A function that increments the player's beam step by step, and spawns a circle at the end of the path.
 	m_beamLine.clear(); // Clear any original vertices within the Vertex Array.
 	m_beamLine.append(m_beamStart); // Immediately append the start position, since it's going to be the same all the time.
-	m_beamEndCurrentPos.position += (m_unitVector * (m_beamSpeed + 5)); // Find the new position for the end point.
+#ifdef _DEBUG
+	m_beamEndCurrentPos.position += (m_unitVector * (m_beamSpeed + 3)); // Find the new position for the end point.
+#else
+	m_beamEndCurrentPos.position += (m_unitVector * (m_beamSpeed)); // Find the new position for the end point.
+#endif
+	
 	m_beamLine.append(m_beamEndCurrentPos); // Append it to the Vertex Array.
 
 	if (m_beamEndCurrentPos.position.y <= m_altitude) 
@@ -335,13 +356,14 @@ void Game::spawnExplosion() {
 	// Gets the length of the distance between the enemy's end position and the explosion's centre.
 	if (m_distanceBetween < m_explosionSize) // If the distance between is less than the explosion's radius..
 	{ // Aka if the end point and the explosion are touching...
-		enemyCooldown = (rand() % 40) + 60; // Wait a random time between the next spawn.
+		enemyCooldown = (rand() % 40) + newCooldown; // Wait a random time between the next spawn.
+		newCooldown--; // Decrement by 1 to increase difficulty.
 		m_enemyLine.clear(); // Clear the Asteroid's old path.
 		m_drawEnemy = false; // Stop drawing the enemy.
 		m_findNewEnemyPosition = true; // Go find a new position.
 		if (!m_hasGainedScore) { // If the player hasn't gained score
-			score += 5; // Give the player some score
-			m_scoreText.setString("Score: " + std::to_string(score)); // Set the score string
+			m_score += 5; // Give the player some score
+			m_scoreText.setString("Score: " + std::to_string(m_score)); // Set the score string
 			m_hasGainedScore = true; // The Player has now gained score
 		}
 	}
@@ -363,14 +385,17 @@ void Game::moveAsteroid()
 	m_enemyLine.append(m_enemyStart); // Append the start point first.
 	m_enemyEndCurrentPos.position += (m_enemyUnitVector * (m_asteroidSpeed)); // Find the new position for the end point.
 	m_enemyLine.append(m_enemyEndCurrentPos); // Append it to the Vertex Array.
+	//m_scoreToGain = static_cast<int>(m_enemyEndCurrentPos.position.y / 20); // Find the score that the player will gain
+	// The closer the asteroid is to the ground, the more score the player will gain
+	// m_scoreToGain will be used later for an advanced scoring system in the Extra Features.
 }
 
 void Game::powerBarControl()
 {
 #ifdef _DEBUG
-	m_powerBarSize += 2.0f; // Increase the size by 0.5f.
+	m_powerBarSize += 2.0f; // Increase the size by 2.0f. (Debug only)
 #else
-	m_powerBarSize += 0.5; // Increase the size by 0.5f.
+	m_powerBarSize += 0.5f; // Increase the size by 0.5f.
 #endif
 
 	m_powerBar.setSize(sf::Vector2f(m_powerBarSize, 50.0f)); // Make the change.

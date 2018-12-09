@@ -1,9 +1,8 @@
 // Author: Joshua Dunne
 // C00241588
-// Date(s): 22/11/18, 26/11/18, 29/11/18, 30/11/18, 02/12/18, 04/12/18, 06/12/18
+// Date(s): 22/11/18, 26/11/18, 29/11/18, 30/11/18, 02/12/18, 04/12/18, 06/12/18, 07/12/18, 09/12/18
 // Estimated Time: 14 Hours
-// Actual Time: 12 Hours (CHANGE THIS)
-
+// Actual Time: 15 Hours
 
 #ifdef _DEBUG 
 #pragma comment(lib,"sfml-graphics-d.lib") 
